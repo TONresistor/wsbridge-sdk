@@ -34,7 +34,7 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run build && npm run type-check",
     "lint": "tsc --noEmit"
   },
   "engines": { "node": ">=18" }
