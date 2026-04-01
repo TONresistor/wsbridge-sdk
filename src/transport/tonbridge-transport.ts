@@ -3,19 +3,17 @@ import { ConnectionError } from '../errors'
 
 declare global {
   interface Window {
-    ton?: {
-      adnl?: {
-        send: (data: string) => void
-        onMessage: (callback: (data: string) => void) => () => void
-      }
+    tonBridge?: {
+      send: (data: string) => void
+      onMessage: (callback: (data: string) => void) => () => void
     }
   }
 }
 
 /**
- * IPC transport for Electron/browser preload environments that expose `window.ton.adnl`.
+ * Transport for Tonnet Browser environments that expose `window.tonBridge`.
  */
-export class IpcTransport extends AbstractTransport {
+export class TonBridgeTransport extends AbstractTransport {
   private unsubscribe: (() => void) | null = null
   private _state: TransportState = TransportState.DISCONNECTED
 
@@ -24,23 +22,23 @@ export class IpcTransport extends AbstractTransport {
     return this._state
   }
 
-  /** Connect to the IPC bridge via `window.ton.adnl`. */
+  /** Connect to the browser bridge via `window.tonBridge`. */
   async connect(): Promise<void> {
     if (this._state === TransportState.CONNECTED) return
     if (this._state === TransportState.CONNECTING) {
-      throw new ConnectionError('Already connecting', 'ipc')
+      throw new ConnectionError('Already connecting', 'tonbridge')
     }
     if (this._state === TransportState.DESTROYED) {
-      throw new ConnectionError('Transport destroyed', 'ipc')
+      throw new ConnectionError('Transport destroyed', 'tonbridge')
     }
 
-    if (typeof window === 'undefined' || !window.ton?.adnl) {
-      throw new ConnectionError('window.ton.adnl not available', 'ipc')
+    if (typeof window === 'undefined' || !window.tonBridge) {
+      throw new ConnectionError('window.tonBridge not available', 'tonbridge')
     }
 
     this.setState(TransportState.CONNECTING)
 
-    this.unsubscribe = window.ton.adnl.onMessage((data: string) => {
+    this.unsubscribe = window.tonBridge.onMessage((data: string) => {
       this.emit('message', data)
     })
 
@@ -48,7 +46,7 @@ export class IpcTransport extends AbstractTransport {
     this.emit('open')
   }
 
-  /** Disconnect from the IPC bridge. */
+  /** Disconnect from the browser bridge. */
   disconnect(): void {
     if (this.unsubscribe) {
       this.unsubscribe()
@@ -67,15 +65,15 @@ export class IpcTransport extends AbstractTransport {
     this.listeners.clear()
   }
 
-  /** Send data over the IPC bridge. */
+  /** Send data over the browser bridge. */
   send(data: string): void {
     if (this._state !== TransportState.CONNECTED) {
-      throw new ConnectionError('IPC transport not connected', 'ipc')
+      throw new ConnectionError('TonBridge transport not connected', 'tonbridge')
     }
-    if (typeof window === 'undefined' || !window.ton?.adnl) {
-      throw new ConnectionError('window.ton.adnl not available', 'ipc')
+    if (typeof window === 'undefined' || !window.tonBridge) {
+      throw new ConnectionError('window.tonBridge not available', 'tonbridge')
     }
-    window.ton.adnl.send(data)
+    window.tonBridge.send(data)
   }
 
   private setState(next: TransportState): void {

@@ -9,7 +9,7 @@ export type * from './types'
 export * from './errors'
 
 // Transport
-export { createTransport, WsTransport, IpcTransport, AbstractTransport, TransportState } from './transport'
+export { createTransport, WsTransport, IpcTransport, TonBridgeTransport, AbstractTransport, TransportState } from './transport'
 export type { WsTransportOptions, TransportEvents, TransportEventName } from './transport'
 
 // RPC
